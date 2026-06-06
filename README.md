@@ -5,13 +5,6 @@
 
 `gmaplibre` is a friendly CLI that helps you export your Google Maps while _keeping your images_. 
 
-It is built around a two-step workflow:
-
-1. `gmaplibre`
-   Exports one or more Google My Maps URLs into GeoJSON; downloads all associated images.
-2. `gmaplibre hype`
-   Converts those exports into a [HYPE](https://hype.hk)-ready CSV.
-
 ## Common Use Cases
 
 - Archive community-made Google My Maps before links, images, or descriptions change.
@@ -26,11 +19,20 @@ Hype.hk is a public mapping platform in Hong Kong. This tool was developed to po
 - Prepare HYPE import CSVs from a consistent intermediate export.
 - Add project-specific HYPE transformation rules with lightweight custom hooks in `custom/{project}/hype.ts`.
 
-## How It Works
+## Install
+
+Clone the repo and install the project
+
+```sh
+git clone git@github.com:saanseoi/gmaplibre.git && cd gmaplibre
+bun install
+```
+
+## Use
 
 ### 1. Export to GeoJSON
 
-Run:
+A CLI will guide you through the steps of exporting your Google Maps. Run
 
 ```sh
 bun run export
@@ -50,9 +52,9 @@ The CLI will:
 - Download those images into the project’s `images/` folder.
 - Write GeoJSON collections plus a `manifest.json`.
 
-### 2. HYPE Export
+### 2. Prepare for HYPE
 
-Run:
+Optionally, you can use the tool to prepare a map for upload to [HYPE](https://hype.hk). Run:
 
 ```sh
 bun run hype
