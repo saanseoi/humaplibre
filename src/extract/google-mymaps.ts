@@ -1,72 +1,44 @@
-import { CliError } from "../core/errors.ts";
-import type { FeatureRecord } from "../domain/feature.ts";
-import type { LayerRecord } from "../domain/layer.ts";
+import type { ExportSummary } from "../core/summary.ts";
 import type { MapRecord } from "../domain/map.ts";
-import { createFeatureId, hashValue, slugify } from "../utils/project.ts";
+import { downloadImagesForFeatures } from "../transform/images.ts";
+import { parseKmlMap } from "./kml.ts";
 
 export interface SourceMapBundle extends MapRecord {}
 
-export async function fetchGoogleMyMapsSource(url: string): Promise<SourceMapBundle> {
-  validateGoogleMapUrl(url);
+export async function fetchGoogleMyMapsSource(
+  url: string,
+  imagesDir: string,
+  summary: ExportSummary,
+): Promise<SourceMapBundle> {
+  const exportUrl = resolveKmlUrl(url);
+  const response = await fetch(exportUrl, {
+    headers: {
+      "user-agent": "gmaplibre/0.1 (+https://github.com/)",
+    },
+  });
 
-  const mapId = extractMapId(url);
-  const title = `map-${mapId}`;
-  const layerId = `layer-${mapId}`;
-  const feature = createPlaceholderFeature(mapId, layerId, url);
-  const layer: LayerRecord = {
-    id: layerId,
-    mapId,
-    name: title,
-    features: [feature],
-  };
-
-  return {
-    id: mapId,
-    title,
-    originalUrl: url,
-    description: "Placeholder map record. KML extraction not yet implemented.",
-    layers: [layer],
-  };
-}
-
-function validateGoogleMapUrl(url: string): void {
-  try {
-    const parsed = new URL(url);
-    if (!parsed.hostname.includes("google.com")) {
-      throw new CliError(`Unsupported source URL: ${url}`);
-    }
-  } catch {
-    throw new CliError(`Invalid URL: ${url}`);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch KML (${response.status}) for ${url}`);
   }
+
+  const kml = await response.text();
+  const map = parseKmlMap(kml, url, summary);
+  const features = map.layers.flatMap((layer) => layer.features);
+  summary.imagesDownloaded += await downloadImagesForFeatures(features, imagesDir);
+
+  return map;
 }
 
-function extractMapId(url: string): string {
+function resolveKmlUrl(url: string): string {
   const parsed = new URL(url);
+  if (!parsed.hostname.includes("google.com")) {
+    throw new Error(`Unsupported source URL: ${url}`);
+  }
+
   const mapId = parsed.searchParams.get("mid");
   if (!mapId) {
-    throw new CliError(`Google My Maps URL is missing "mid": ${url}`);
+    throw new Error(`Google My Maps URL is missing "mid": ${url}`);
   }
 
-  return slugify(mapId);
-}
-
-function createPlaceholderFeature(mapId: string, layerId: string, url: string): FeatureRecord {
-  const name = `Placeholder ${mapId}`;
-  const sourceFeatureKey = hashValue([url, layerId, name, "0", "0"].join("|"));
-
-  return {
-    featureId: createFeatureId(),
-    mapId,
-    layerId,
-    name,
-    description: "Replace this placeholder once KML extraction is implemented.",
-    descriptionRaw: "",
-    images: [],
-    latitude: 0,
-    longitude: 0,
-    sourceRef: {
-      mapUrl: url,
-      sourceFeatureKey,
-    },
-  };
+  return `https://www.google.com/maps/d/kml?mid=${encodeURIComponent(mapId)}&forcekml=1`;
 }

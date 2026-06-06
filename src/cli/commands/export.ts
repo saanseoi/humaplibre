@@ -73,7 +73,7 @@ export async function runExportCommand(argv: string[]): Promise<void> {
 
   spin.start("Resolving source maps");
   for (const url of sourceUrls) {
-    const source = await fetchGoogleMyMapsSource(url);
+    const source = await fetchGoogleMyMapsSource(url, paths.imagesDir, summary);
     sources.push(source);
     summary.mapsProcessed += 1;
   }

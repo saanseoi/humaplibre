@@ -38,24 +38,29 @@ export function computeCollectionWrites(
   }
 
   return sources.flatMap((map) =>
-    map.layers.map((layer) => ({
-      type: "FeatureCollection" as const,
-      id: `${map.id}-${layer.id}`,
-      filename: `${slugify(map.title)}-${slugify(layer.name)}.geojson`,
-      metadata: {
-        map: {
-          id: map.id,
-          title: map.title,
-          description: map.description,
-          originalUrl: map.originalUrl,
+    map.layers.map((layer) => {
+      const mapSlug = slugify(map.title) || map.id;
+      const layerSlug = slugify(layer.name) || layer.id;
+
+      return {
+        type: "FeatureCollection" as const,
+        id: `${map.id}-${layer.id}`,
+        filename: `${mapSlug}-${layerSlug}.geojson`,
+        metadata: {
+          map: {
+            id: map.id,
+            title: map.title,
+            description: map.description,
+            originalUrl: map.originalUrl,
+          },
+          layer: {
+            id: layer.id,
+            name: layer.name,
+          },
         },
-        layer: {
-          id: layer.id,
-          name: layer.name,
-        },
-      },
-      features: layer.features.map((feature) => featureToGeoJson(feature, map.title, layer.name)),
-    })),
+        features: layer.features.map((feature) => featureToGeoJson(feature, map.title, layer.name)),
+      };
+    }),
   );
 }
 
