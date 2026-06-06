@@ -1,6 +1,9 @@
 import type { ExportSummary } from "../core/summary.ts";
 import type { MapRecord } from "../domain/map.ts";
-import { downloadImagesForFeatures } from "../transform/images.ts";
+import {
+  downloadImagesForFeatures,
+  type ImageDownloadProgress,
+} from "../transform/images.ts";
 import { parseKmlMap } from "./kml.ts";
 
 export interface SourceMapBundle extends MapRecord {}
@@ -9,6 +12,7 @@ export async function fetchGoogleMyMapsSource(
   url: string,
   imagesDir: string,
   summary: ExportSummary,
+  onImageProgress?: (progress: ImageDownloadProgress) => void,
 ): Promise<SourceMapBundle> {
   const exportUrl = resolveKmlUrl(url);
   const response = await fetch(exportUrl, {
@@ -24,7 +28,7 @@ export async function fetchGoogleMyMapsSource(
   const kml = await response.text();
   const map = parseKmlMap(kml, url, summary);
   const features = map.layers.flatMap((layer) => layer.features);
-  summary.imagesDownloaded += await downloadImagesForFeatures(features, imagesDir);
+  summary.imagesDownloaded += await downloadImagesForFeatures(features, imagesDir, onImageProgress);
 
   return map;
 }
