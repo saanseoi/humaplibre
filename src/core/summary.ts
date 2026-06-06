@@ -1,9 +1,10 @@
-import type { LayeringMode, ExportMode } from "../domain/manifest.ts";
+import type { ExportMode, LayerMode, MapMode } from "../domain/manifest.ts";
 
 export interface ExportSummary {
   project: string;
   mode: ExportMode;
-  layering: LayeringMode;
+  mapMode: MapMode;
+  layerMode: LayerMode;
   mapsProcessed: number;
   collectionsWritten: number;
   featuresWritten: number;
@@ -16,12 +17,14 @@ export interface ExportSummary {
 export function createEmptySummary(
   project: string,
   mode: ExportMode,
-  layering: LayeringMode,
+  mapMode: MapMode,
+  layerMode: LayerMode,
 ): ExportSummary {
   return {
     project,
     mode,
-    layering,
+    mapMode,
+    layerMode,
     mapsProcessed: 0,
     collectionsWritten: 0,
     featuresWritten: 0,
@@ -36,7 +39,8 @@ export function renderExportSummary(summary: ExportSummary): string {
   return [
     `project: ${summary.project}`,
     `mode: ${summary.mode}`,
-    `layering: ${summary.layering}`,
+    `maps: ${summary.mapMode}`,
+    `layers: ${summary.layerMode}`,
     `maps processed: ${summary.mapsProcessed}`,
     `collections written: ${summary.collectionsWritten}`,
     `features written: ${summary.featuresWritten}`,
