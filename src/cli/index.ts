@@ -42,7 +42,7 @@ function printHelp(): void {
   console.log(`gmaplibre
 
 Commands:
-  gmaplibre export [--project <project>] [--mode replace|extend] [--layering same|separate] [--url <url> ...]
+  gmaplibre export [--project <project>] [--mode replace|extend] [--map-mode combine|keepSeparate] [--layer-mode flatten|groupByName|keepSeparate] [--url <url> ...]
   gmaplibre hype [--project <project>] [--locale <locale>] [--email <email>] [--user-id <id>]
 `);
 }
