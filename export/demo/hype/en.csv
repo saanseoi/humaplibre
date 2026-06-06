@@ -1,0 +1,2 @@
+status,error,feature.id,layer.name,feature.latitude,feature.longitude,feature.i18n.locale,feature.i18n.featureId,feature.i18n.title,feature.i18n.titleGen,feature.i18n.description,feature.i18n.descriptionGen,feature.i18n.rawAddress,feature.isArchived,feature.isIntangible,feature.isPublished,feature.isVisitable,user.email,user.id
+OK,,9PnENnavpt7H,map-1xkja3bsv1ium92nrrfr0hkieh6k00jq,0,0,en,9PnENnavpt7H,Placeholder 1xkja3bsv1ium92nrrfr0hkieh6k00jq,false,Replace this placeholder once KML extraction is implemented.,false,,false,false,false,true,test@example.com,user-123

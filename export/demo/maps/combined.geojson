@@ -1,0 +1,31 @@
+{
+  "type": "FeatureCollection",
+  "id": "combined",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0,
+          0
+        ]
+      },
+      "properties": {
+        "featureId": "AtbyFGk7PMAI",
+        "mapId": "1xkja3bsv1ium92nrrfr0hkieh6k00jq",
+        "mapTitle": "map-1xkja3bsv1ium92nrrfr0hkieh6k00jq",
+        "layerId": "layer-1xkja3bsv1ium92nrrfr0hkieh6k00jq",
+        "layerName": "map-1xkja3bsv1ium92nrrfr0hkieh6k00jq",
+        "name": "Placeholder 1xkja3bsv1ium92nrrfr0hkieh6k00jq",
+        "description": "Replace this placeholder once KML extraction is implemented.",
+        "descriptionRaw": "",
+        "images": [],
+        "sourceRef": {
+          "mapUrl": "https://www.google.com/maps/d/u/1/viewer?mid=1xKJa3bsv1IUm92nrrfR0hKIEH6k00jQ&ll=22.270897424770137%2C114.17628059999998&z=13",
+          "sourceFeatureKey": "7a5a905b9639c7f7c41bebd1b4b2fd85dfd10d6f2bfb8d78b924e6941ce9b648"
+        }
+      }
+    }
+  ]
+}

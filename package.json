@@ -17,6 +17,9 @@
     "typescript": "^6.0.3"
   },
   "dependencies": {
-    "@clack/prompts": "^1.5.1"
+    "@clack/prompts": "^1.5.1",
+    "fast-xml-parser": "^5.8.0",
+    "nanoid": "^5.1.11",
+    "node-html-parser": "^7.1.0"
   }
 }

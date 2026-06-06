@@ -1,0 +1,20 @@
+{
+  "project": "demo",
+  "createdAt": "2026-06-06T09:34:29.619Z",
+  "updatedAt": "2026-06-06T09:34:29.620Z",
+  "mode": "replace",
+  "layering": "same",
+  "sourceUrls": [
+    "https://www.google.com/maps/d/u/1/viewer?mid=1xKJa3bsv1IUm92nrrfR0hKIEH6k00jQ&ll=22.270897424770137%2C114.17628059999998&z=13"
+  ],
+  "collections": [
+    {
+      "id": "combined",
+      "filename": "combined.geojson",
+      "mapIds": [
+        "1xkja3bsv1ium92nrrfr0hkieh6k00jq"
+      ],
+      "featureCount": 1
+    }
+  ]
+}
