@@ -1,2 +1,2 @@
-# gmaps-libre
-Liberate Personal Google Maps
+# Liberate your Google Maps
+
