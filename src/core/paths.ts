@@ -36,7 +36,17 @@ export async function ensureProjectDirs(paths: ProjectPaths): Promise<void> {
 
 export async function listExistingProjects(): Promise<string[]> {
   const customDir = path.join(CWD, "custom");
+  const exportDir = path.join(CWD, "export");
   await mkdir(customDir, { recursive: true });
-  const entries = await readdir(customDir, { withFileTypes: true });
-  return entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort();
+  await mkdir(exportDir, { recursive: true });
+
+  const [customEntries, exportEntries] = await Promise.all([
+    readdir(customDir, { withFileTypes: true }),
+    readdir(exportDir, { withFileTypes: true }),
+  ]);
+
+  return [...new Set([
+    ...customEntries.filter((entry) => entry.isDirectory()).map((entry) => entry.name),
+    ...exportEntries.filter((entry) => entry.isDirectory()).map((entry) => entry.name),
+  ])].sort();
 }
