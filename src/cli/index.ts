@@ -1,5 +1,5 @@
 import { cancel, intro, outro } from "@clack/prompts";
-import { runExportCommand } from "./commands/export.ts";
+import { runProcessCommand } from "./commands/process.ts";
 import { runHypeCommand } from "./commands/hype.ts";
 import { CliError, isCliError } from "../core/errors.ts";
 
@@ -21,7 +21,7 @@ export async function runCli(argv: string[]): Promise<void> {
 │      ▐▌ ▐▌                █     ▐▙▄▄▖█ ▐▙▄▞▘
 │                           ▀
 │                    山水 | SaanSeoi`);
-      await runExportCommand(rest);
+      await runProcessCommand(rest);
       outro("Export finished.");
       return;
     }

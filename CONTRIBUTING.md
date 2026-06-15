@@ -6,7 +6,7 @@ Public contributions are welcome.
 
 - Bug fixes
 - Documentation improvements
-- New export edge-case handling
+- New process edge-case handling
 - Better Humap parsing
 - New extraction use cases proposed through issues
 
