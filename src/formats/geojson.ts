@@ -18,6 +18,7 @@ export interface GenericFeatureProperties {
     mapUrl: string;
     sourceFeatureKey: string;
   };
+  [key: string]: unknown;
 }
 
 export interface GenericFeature {
