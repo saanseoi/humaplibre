@@ -1,56 +1,28 @@
-import type { ExportMode, LayerMode, MapMode } from "../domain/manifest.ts";
-
 const CYAN = "\u001B[36m";
 const RESET = "\u001B[0m";
 
 export interface ExportSummary {
   project: string;
-  mode: ExportMode;
-  mapMode: MapMode;
-  layerMode: LayerMode;
-  mapsProcessed: number;
-  collectionsWritten: number;
-  featuresWritten: number;
-  featuresSkipped: number;
-  imagesDownloaded: number;
-  duplicatesSkipped: number;
-  duplicatesReplaced: number;
+  collections: number;
+  records: number;
+  images: number;
 }
 
-export function createEmptySummary(
-  project: string,
-  mode: ExportMode,
-  mapMode: MapMode,
-  layerMode: LayerMode,
-): ExportSummary {
+export function createEmptySummary(project: string): ExportSummary {
   return {
     project,
-    mode,
-    mapMode,
-    layerMode,
-    mapsProcessed: 0,
-    collectionsWritten: 0,
-    featuresWritten: 0,
-    featuresSkipped: 0,
-    imagesDownloaded: 0,
-    duplicatesSkipped: 0,
-    duplicatesReplaced: 0,
+    collections: 0,
+    records: 0,
+    images: 0,
   };
 }
 
 export function renderExportSummary(summary: ExportSummary): string {
   return [
     formatSummaryLine("Project", summary.project),
-    formatSummaryLine("Mode", summary.mode),
-    formatSummaryLine("Maps", summary.mapMode),
-    formatSummaryLine("Layers", summary.layerMode),
-    formatSummaryLine("Maps Processed", summary.mapsProcessed),
-    formatSummaryLine("Collections Written", summary.collectionsWritten),
-    formatSummaryLine("Features Written", summary.featuresWritten),
-    formatSummaryLine("Features Skipped", summary.featuresSkipped),
-    formatSummaryLine("Images Downloaded", summary.imagesDownloaded),
-    formatSummaryLine("Duplicates Skipped", summary.duplicatesSkipped),
-    formatSummaryLine("Duplicates Replaced", summary.duplicatesReplaced),
+    formatSummaryLine("Collections", summary.collections),
+    formatSummaryLine("Records", summary.records),
+    formatSummaryLine("Images", summary.images),
   ].join("\n");
 }
 

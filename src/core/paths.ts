@@ -16,7 +16,7 @@ export function getProjectPaths(project: string): ProjectPaths {
   const root = path.join(CWD, "export", project);
   return {
     root,
-    mapsDir: path.join(root, "maps"),
+    mapsDir: root,
     imagesDir: path.join(root, "images"),
     hypeDir: path.join(root, "hype"),
     manifestFile: path.join(root, "manifest.json"),
