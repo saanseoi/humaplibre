@@ -12,15 +12,29 @@ export async function runCli(argv: string[]): Promise<void> {
       return;
     }
 
-    if (!command || command === "export") {
-      intro("gmaplibre");
+    if (!command || command === "process") {
+      intro(`
+│
+│      ▗▖ ▗▖█  ▐▌▄▄▄▄  ▗▞▀▜▌▄▄▄▄  ▗▖   ▄ ▗▖    ▄▄▄ ▗▞▀▚▖
+│      ▐▌ ▐▌▀▄▄▞▘█ █ █ ▝▚▄▟▌█   █ ▐▌   ▄ ▐▌   █    ▐▛▀▀▘
+│      ▐▛▀▜▌     █   █      █▄▄▄▀ ▐▌   █ ▐▛▀▚▖█    ▝▚▄▄▖
+│      ▐▌ ▐▌                █     ▐▙▄▄▖█ ▐▙▄▞▘
+│                           ▀
+│                    山水 | SaanSeoi`);
       await runExportCommand(rest);
       outro("Export finished.");
       return;
     }
 
     if (command === "hype") {
-      intro("gmaplibre hype");
+      intro(`
+│
+│      ▗▖ ▗▖█  ▐▌▄▄▄▄  ▗▞▀▜▌▄▄▄▄  ▗▖   ▄ ▗▖    ▄▄▄ ▗▞▀▚▖
+│      ▐▌ ▐▌▀▄▄▞▘█ █ █ ▝▚▄▟▌█   █ ▐▌   ▄ ▐▌   █    ▐▛▀▀▘
+│      ▐▛▀▜▌     █   █      █▄▄▄▀ ▐▌   █ ▐▛▀▚▖█    ▝▚▄▄▖
+│      ▐▌ ▐▌                █     ▐▙▄▄▖█ ▐▙▄▞▘
+│                           ▀
+│                 山水 | SaanSeoi | HYPE`);
       await runHypeCommand(rest);
       outro("HYPE export finished.");
       return;
@@ -39,10 +53,10 @@ export async function runCli(argv: string[]): Promise<void> {
 }
 
 function printHelp(): void {
-  console.log(`gmaplibre
+  console.log(`humaplibre
 
 Commands:
-  gmaplibre export [--project <project>] [--mode replace|extend] [--map-mode combine|keepSeparate] [--layer-mode flatten|groupByName|keepSeparate] [--url <url> ...]
+  gmaplibre export [--project <import-project>]
   gmaplibre hype [--project <project>] [--locale <locale>] [--email <email>] [--user-id <id>]
 `);
 }
