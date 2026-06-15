@@ -124,6 +124,20 @@ If a hook is not provided, the default behavior is used.
 - This export was only tested against a handful of humaps. There may be unforseen bugs or limitations.
 - If you have another extraction use case in mind, open an issue describing the desired process and output.
 
+## Outstanding Items
+
+In order to support the humap exports 100% we still need to understand how the following looks in the data export
+
+- Annotations
+- Image Comparisons
+- Trails
+- IIIF
+- Sketchfab
+- Figshare
+- Record "status" -- what are all the non-published / draft statuses?
+
+If you have maps with any of these features, please let us know as we'd love to see what the exported data looks like!
+
 ## Development
 
 Install dependencies:
@@ -141,5 +155,3 @@ bun run check
 ## Contributing
 
 Public contributions are welcome. See [CONTRIBUTING.md](./CONTRIBUTING.md).
-
-
