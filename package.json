@@ -20,6 +20,8 @@
   },
   "dependencies": {
     "@clack/prompts": "^1.5.1",
-    "nanoid": "^5.1.11"
+    "fast-xml-parser": "^5.3.0",
+    "nanoid": "^5.1.11",
+    "node-html-parser": "^7.0.1"
   }
 }

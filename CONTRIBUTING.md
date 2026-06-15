@@ -7,10 +7,10 @@ Public contributions are welcome.
 - Bug fixes
 - Documentation improvements
 - New export edge-case handling
-- Better Google My Maps parsing
+- Better Humap parsing
 - New extraction use cases proposed through issues
 
-## Before Opening A PR
+## Before Opening a PR
 
 - Open an issue first for larger changes so we can discuss scope.
 - Keep changes focused and avoid mixing unrelated work.
