@@ -1,4 +1,5 @@
-import { readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import path from "node:path";
 
 export async function writeCsvFile(
   file: string,
@@ -9,6 +10,7 @@ export async function writeCsvFile(
     columns.map(escapeCsv).join(","),
     ...rows.map((row) => columns.map((column) => escapeCsv(row[column] ?? "")).join(",")),
   ];
+  await mkdir(path.dirname(file), { recursive: true });
   await writeFile(file, `${lines.join("\n")}\n`, "utf8");
 }
 

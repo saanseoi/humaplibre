@@ -3,18 +3,18 @@ import path from "node:path";
 import type { FeatureRecord } from "../domain/feature.ts";
 
 export interface GenericFeatureProperties {
-  featureId: string;
-  mapId: string;
-  mapTitle: string;
-  layerId: string;
-  layerName: string;
-  name: string;
+  featureId?: string;
+  mapId?: string;
+  mapTitle?: string;
+  layerId?: string;
+  layerName?: string;
+  name?: string;
   description?: string;
   descriptionRaw?: string;
-  images: string[];
+  images?: unknown[];
   rawAddress?: string;
   sourceFolderPath?: string[];
-  sourceRef: {
+  sourceRef?: {
     mapUrl: string;
     sourceFeatureKey: string;
   };
@@ -34,6 +34,7 @@ export interface GenericFeatureCollection {
   type: "FeatureCollection";
   id: string;
   filename: string;
+  directory?: string;
   metadata?: Record<string, unknown>;
   features: GenericFeature[];
 }
@@ -41,24 +42,40 @@ export interface GenericFeatureCollection {
 export async function loadExistingCollections(
   directory: string,
 ): Promise<GenericFeatureCollection[]> {
+  const collections = await loadExistingCollectionsFrom(directory, directory);
+
+  return collections.sort((left, right) => left.filename.localeCompare(right.filename));
+}
+
+async function loadExistingCollectionsFrom(
+  root: string,
+  directory: string,
+): Promise<GenericFeatureCollection[]> {
   const entries = await readdir(directory, { withFileTypes: true });
   const collections: GenericFeatureCollection[] = [];
 
   for (const entry of entries) {
+    const file = path.join(directory, entry.name);
+
+    if (entry.isDirectory()) {
+      collections.push(...await loadExistingCollectionsFrom(root, file));
+      continue;
+    }
+
     if (!entry.isFile() || !entry.name.endsWith(".geojson")) {
       continue;
     }
 
-    const file = path.join(directory, entry.name);
     const contents = await readFile(file, "utf8");
     const parsed = JSON.parse(contents) as Omit<GenericFeatureCollection, "filename">;
     collections.push({
       ...parsed,
-      filename: entry.name,
+      filename: path.relative(root, file),
+      directory: path.dirname(file),
     });
   }
 
-  return collections.sort((left, right) => left.filename.localeCompare(right.filename));
+  return collections;
 }
 
 export async function writeCollections(
@@ -66,9 +83,10 @@ export async function writeCollections(
   collections: GenericFeatureCollection[],
 ): Promise<void> {
   await Promise.all(
-    collections.map((collection) =>
-      writeFile(
-        path.join(directory, collection.filename),
+    collections.map(async (collection) => {
+      const destination = path.join(directory, collection.filename);
+      await Bun.write(
+        destination,
         `${JSON.stringify(
           {
             type: collection.type,
@@ -79,8 +97,8 @@ export async function writeCollections(
           null,
           2,
         )}\n`,
-        "utf8",
-      )),
+      );
+    }),
   );
 }
 

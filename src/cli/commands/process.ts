@@ -71,20 +71,27 @@ export async function runProcessCommand(argv: string[]): Promise<void> {
 
   const results = await exportHumapCollections(importProject, selectedCollectionIds, paths.root);
   await writeCollections(paths.mapsDir, results.map((result) => result.collection));
-
-  const manifest = createDefaultManifest(project);
-  manifest.updatedAt = new Date().toISOString();
-  manifest.sourceUrls = [importProject.sourceDir];
-  manifest.collections = results.map((result) => ({
-    id: result.collection.id,
-    filename: result.collection.filename,
-    mapIds: [importProject.sourceName],
-    featureCount: result.collection.features.length,
-  }));
-  await saveManifest(paths.manifestFile, manifest);
   const summary = createEmptySummary(project);
   summary.collections = results.length;
   summary.records = results.reduce((count, result) => count + result.collection.features.length, 0);
   summary.images = results.reduce((count, result) => count + result.imagesCopied, 0);
+
+  await Promise.all(results.map(async (result) => {
+    const manifest = createDefaultManifest(project);
+    manifest.updatedAt = new Date().toISOString();
+    manifest.sourceUrls = [importProject.sourceDir];
+    manifest.collections = [{
+      id: result.collection.id,
+      filename: path.basename(result.collection.filename),
+      mapIds: [importProject.sourceName],
+      featureCount: result.collection.features.length,
+    }];
+    await saveManifest(path.join(result.directory, "manifest.json"), manifest);
+  }));
+
+  for (const warning of [...new Set(results.flatMap((result) => result.warnings))]) {
+    console.warn(`Warning: ${warning}`);
+  }
+
   note(renderExportSummary(summary), "Summary");
 }

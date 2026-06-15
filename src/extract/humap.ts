@@ -3,6 +3,8 @@ import path from "node:path";
 import type { GenericFeature, GenericFeatureCollection } from "../formats/geojson.ts";
 import { readCsvFile } from "../formats/csv.ts";
 import { createFeatureId, resolveProjectName, slugify } from "../utils/project.ts";
+import { extractDescriptionParts } from "../transform/description.ts";
+import { downloadAssetsInBatches, type DownloadableAsset } from "../transform/assets.ts";
 
 interface HumapRecord {
   _humap_id: number;
@@ -80,6 +82,9 @@ export interface HumapCollectionInventory {
 export interface HumapExportResult {
   collection: GenericFeatureCollection;
   imagesCopied: number;
+  filesDownloaded: number;
+  directory: string;
+  warnings: string[];
 }
 
 export async function listHumapImportProjects(importRoot: string): Promise<HumapImportProject[]> {
@@ -185,11 +190,16 @@ export async function exportHumapCollections(
     const filenameStem = slugify(collection.name) || `collection-${collectionId}`;
     const collectionDir = path.join(outputRoot, filenameStem);
     const imageDir = path.join(collectionDir, "images");
+    const fileDir = path.join(collectionDir, "files");
     await rm(collectionDir, { recursive: true, force: true });
     await mkdir(imageDir, { recursive: true });
+    await mkdir(fileDir, { recursive: true });
 
     let imagesCopied = 0;
+    let filesDownloaded = 0;
     const features: GenericFeature[] = [];
+    const warnings = new Set<string>();
+    const pendingFileDownloads: Array<DownloadableAsset & { target: Record<string, unknown> }> = [];
     const items = [...(collection.items ?? [])]
       .filter((item) => item.type === "Record")
       .sort((left, right) => (left.order ?? 0) - (right.order ?? 0));
@@ -201,45 +211,129 @@ export async function exportHumapCollections(
       }
 
       const featureId = getOrCreateFeatureId(featureIds, record._humap_id);
-      const relatedImages = mediaImagesByRecordId.get(String(record._humap_id)) ?? [];
+      const relatedImages = sortRowsByOrder(mediaImagesByRecordId.get(String(record._humap_id)) ?? []);
       const copiedImages = await copyRecordImages(featureId, relatedImages, sourceImagesByStem, imageDir);
       imagesCopied += copiedImages.length;
+      const relatedFiles = mediaFilesByRecordId.get(String(record._humap_id)) ?? [];
+      const relatedLinks = linksByRecordId.get(String(record._humap_id)) ?? [];
+      const relatedAudioEmbeds = audioEmbedsByRecordId.get(String(record._humap_id)) ?? [];
+      const relatedVideoEmbeds = videoEmbedsByRecordId.get(String(record._humap_id)) ?? [];
+      const recordCsv = recordRowsById.get(String(record._humap_id)) ?? null;
+      const userRow = record.user_id ? (userRowsById.get(String(record.user_id)) ?? null) : null;
+      const { description } = extractDescriptionParts(record.content ?? "", []);
 
-      const properties = {
+      if (hasValues(record.data_fields)) {
+        warnings.add(`dataFields present in ${collection.name}; including them unmodified because they are not tested.`);
+      }
+      if (hasValues(record.custom_fields)) {
+        warnings.add(`customFields present in ${collection.name}; including them unmodified because they are not tested.`);
+      }
+      if (Array.isArray(record.annotations) && record.annotations.length > 0) {
+        warnings.add(`annotations present in ${collection.name}; including them unmodified because they are not tested.`);
+      }
+
+      const transformedImages = relatedImages.map((row, index) =>
+        compactObject({
+          path: copiedImages[index] ? path.posix.join("images", copiedImages[index]!) : undefined,
+          humapImageId: parseNumber(row["[Humap ID]"]),
+          order: parseNumber(row.Order),
+          humapUrl: row.URL,
+          name: row.Name,
+          altText: row["Alt text"],
+          credit: row.Credit,
+          description: row.Description,
+          transcription: row.Transcription,
+          identifier: row.Identifier,
+          license: row.License,
+          rightsStatement: row["Rights statement"],
+          sourceUrl: row["Source link"],
+        }))
+        .filter(isDefined);
+
+      const transformedFiles = relatedFiles.map((row, index) => {
+        const name = trimToUndefined(row.Name);
+        const extension = name ? path.extname(name) : undefined;
+        const target = compactObject({
+          humapFileId: parseNumber(row["[Humap ID]"]),
+          name: row.Name,
+          humapUrl: row.URL,
+          credit: row.Credit,
+          description: row.Description,
+        }) ?? {};
+
+        const humapUrl = trimToUndefined(row.URL);
+        if (humapUrl) {
+          pendingFileDownloads.push({
+            featureId,
+            index,
+            url: humapUrl,
+            destinationDir: fileDir,
+            destinationStem: featureId,
+            fallbackExtension: extension,
+            target,
+          });
+        }
+
+        return target;
+      });
+
+      const properties = compactObject({
         featureId,
         humapRecordId: record._humap_id,
-        humapCollectionId: collection._humap_id,
-        collectionName: collection.name,
-        itemOrder: item.order ?? null,
-        mapId: project.outputProjectName,
-        mapTitle: project.displayName,
-        layerId: String(collection._humap_id),
-        layerName: collection.name,
+        itemOrder: item.order ?? undefined,
         name: record.name ?? item.name ?? `Record ${record._humap_id}`,
-        status: record.status ?? null,
-        description: record.content ?? "",
+        status: record.status,
+        description,
         descriptionRaw: record.content ?? "",
-        images: copiedImages.map((image) => path.posix.join(filenameStem, "images", image)),
-        rawAddress: guessRawAddress(record.content),
-        sourceFolderPath: [project.sourceName, "collections", filenameStem],
-        sourceRef: {
+        images: transformedImages,
+        files: transformedFiles,
+        audio: relatedAudioEmbeds.map((row) => compactObject({
+          humapEmbedId: parseNumber(row["[Humap ID]"]),
+          order: parseNumber(row.Order),
+          name: row.Name,
+          embedUrl: row.URL,
+          html: row.HTML,
+          imageUrl: row["Image URL"],
+          altText: row["Alt text"],
+          transcription: row.Transcription,
+          identifier: row.Identifier,
+          license: row.License,
+          rightsStatement: row["Rights statement"],
+          sourceUrl: row["Source link"],
+        })).filter(isDefined),
+        video: relatedVideoEmbeds.map((row) => compactObject({
+          humapEmbedId: parseNumber(row["[Humap ID]"]),
+          order: parseNumber(row.Order),
+          name: row.Name,
+          embedUrl: row.URL,
+          html: row.HTML,
+          imageUrl: row["Image URL"],
+          altText: row["Alt text"],
+          transcription: row.Transcription,
+          identifier: row.Identifier,
+          license: row.License,
+          rightsStatement: row["Rights statement"],
+          sourceUrl: row["Source link"],
+        })).filter(isDefined),
+        links: relatedLinks.map((row) => compactObject({
+          name: row.Name,
+          url: row.URL,
+        })).filter(isDefined),
+        rawAddress: guessRawAddress(description),
+        sourceRef: compactObject({
           mapUrl: "",
           sourceFeatureKey: String(record._humap_id),
-        },
-        tenant: data.tenant ?? null,
+        }),
         dataFields: record.data_fields ?? {},
         customFields: record.custom_fields ?? null,
-        taxonomies: record.taxonomies ?? {},
-        links: record.links ?? [],
+        Category: deriveCategory(record.taxonomies),
         annotations: record.annotations ?? [],
-        recordCsv: recordRowsById.get(String(record._humap_id)) ?? null,
-        user: record.user_id ? (userRowsById.get(String(record.user_id)) ?? null) : null,
-        mediaImages: relatedImages,
-        mediaFiles: mediaFilesByRecordId.get(String(record._humap_id)) ?? [],
-        mediaAudioEmbeds: audioEmbedsByRecordId.get(String(record._humap_id)) ?? [],
-        mediaVideoEmbeds: videoEmbedsByRecordId.get(String(record._humap_id)) ?? [],
-        associationsLinks: linksByRecordId.get(String(record._humap_id)) ?? [],
-      };
+        createdBy: trimToUndefined(userRow?.Name) ?? trimToUndefined(recordCsv?.["Created by"]),
+        userId: record.user_id ?? undefined,
+        dateFrom: trimToUndefined(recordCsv?.["Date from"]) ?? trimToUndefined(record.date_from),
+        dateTo: trimToUndefined(recordCsv?.["Date to"]) ?? trimToUndefined(record.date_to),
+        stats: buildStats(recordCsv),
+      }) ?? {};
 
       features.push({
         type: "Feature",
@@ -251,21 +345,45 @@ export async function exportHumapCollections(
       });
     }
 
+    const downloads = await downloadAssetsInBatches(
+      pendingFileDownloads.map(({ target: _target, ...asset }) => asset),
+    );
+
+    for (let index = 0; index < downloads.length; index += 1) {
+      const localPath = downloads[index]?.localPath;
+      if (!localPath) {
+        continue;
+      }
+
+      pendingFileDownloads[index]!.target.path = path.posix.join("files", localPath);
+      if (downloads[index]?.mimeType) {
+        pendingFileDownloads[index]!.target.mimeType = downloads[index]!.mimeType;
+      }
+      filesDownloaded += 1;
+    }
+
     results.push({
       collection: {
         type: "FeatureCollection",
         id: filenameStem,
-        filename: `${filenameStem}.geojson`,
-        metadata: {
+        filename: path.join(filenameStem, `${filenameStem}.geojson`),
+        directory: collectionDir,
+        metadata: compactObject({
           sourceName: project.sourceName,
           collectionId: collection._humap_id,
           collectionName: collection.name,
+          collectionSlug: filenameStem,
           collectionType: collection.type ?? null,
           sourceDir: project.sourceDir,
-        },
+          tenantName: data.tenant?.name,
+          tenantSlug: data.tenant?.slug,
+        }),
         features,
       },
       imagesCopied,
+      filesDownloaded,
+      directory: collectionDir,
+      warnings: [...warnings],
     });
   }
 
@@ -359,6 +477,10 @@ function groupRows(
   return grouped;
 }
 
+function sortRowsByOrder(rows: Array<Record<string, string>>): Array<Record<string, string>> {
+  return [...rows].sort((left, right) => Number(left.Order || 0) - Number(right.Order || 0));
+}
+
 function indexRows(
   rows: Array<Record<string, string>>,
   key: string,
@@ -376,11 +498,10 @@ async function copyRecordImages(
   sourceImagesByStem: Map<string, string>,
   imageDir: string,
 ): Promise<string[]> {
-  const ordered = [...rows].sort((left, right) => Number(left.Order || 0) - Number(right.Order || 0));
   const copied: string[] = [];
 
-  for (let index = 0; index < ordered.length; index += 1) {
-    const row = ordered[index]!;
+  for (let index = 0; index < rows.length; index += 1) {
+    const row = rows[index]!;
     const s3Key = row["S3 key"]?.trim();
     if (!s3Key) {
       continue;
@@ -418,4 +539,95 @@ function guessRawAddress(content?: string): string | undefined {
 
   const match = content.match(/地址[:：]\s*([^<\n]+)/u);
   return match?.[1]?.trim() || undefined;
+}
+
+function trimToUndefined(value?: string | null): string | undefined {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : undefined;
+}
+
+function parseNumber(value?: string): number | undefined {
+  const trimmed = trimToUndefined(value);
+  if (!trimmed) {
+    return undefined;
+  }
+
+  const parsed = Number(trimmed);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function compactObject<T>(value: T): T | undefined {
+  return compactValue(value) as T | undefined;
+}
+
+function compactValue(value: unknown): unknown {
+  if (value === null || value === undefined) {
+    return undefined;
+  }
+
+  if (typeof value === "string") {
+    return trimToUndefined(value);
+  }
+
+  if (Array.isArray(value)) {
+    const compacted = value
+      .map((entry) => compactValue(entry))
+      .filter((entry) => entry !== undefined);
+    return compacted.length > 0 ? compacted : undefined;
+  }
+
+  if (typeof value === "object") {
+    const entries = Object.entries(value as Record<string, unknown>)
+      .map(([key, entry]) => [key, compactValue(entry)] as const)
+      .filter((entry): entry is readonly [string, unknown] => entry[1] !== undefined);
+    return entries.length > 0 ? Object.fromEntries(entries) : undefined;
+  }
+
+  return value;
+}
+
+function buildStats(recordCsv: Record<string, string> | null): Record<string, number> | undefined {
+  if (!recordCsv) {
+    return undefined;
+  }
+
+  return compactObject({
+    imagesCount: parseNumber(recordCsv["Images count"]) ?? 0,
+    videoEmbedsCount: parseNumber(recordCsv["Video embeds count"]) ?? 0,
+    audioEmbedsCount: parseNumber(recordCsv["Audio embeds count"]) ?? 0,
+    filesCount: parseNumber(recordCsv["Files count"]) ?? 0,
+    iiifEmbedsCount: parseNumber(recordCsv["IIIF embeds count"]) ?? 0,
+    sketchfabEmbedsCount: parseNumber(recordCsv["Sketchfab embeds count"]) ?? 0,
+    figshareEmbedsCount: parseNumber(recordCsv["Figshare embeds count"]) ?? 0,
+    linksCount: parseNumber(recordCsv["Links count"]) ?? 0,
+    annotationsCount: parseNumber(recordCsv["Annotations count"]) ?? 0,
+  });
+}
+
+function deriveCategory(taxonomies?: Record<string, string[]>): string | undefined {
+  if (!taxonomies) {
+    return undefined;
+  }
+
+  return Object.keys(taxonomies).find((key) => key === "本土經濟 | Local economy");
+}
+
+function hasValues(value: unknown): boolean {
+  if (!value) {
+    return false;
+  }
+
+  if (Array.isArray(value)) {
+    return value.length > 0;
+  }
+
+  if (typeof value === "object") {
+    return Object.keys(value as Record<string, unknown>).length > 0;
+  }
+
+  return true;
+}
+
+function isDefined<T>(value: T | undefined): value is T {
+  return value !== undefined;
 }

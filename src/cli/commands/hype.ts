@@ -35,9 +35,14 @@ export async function runHypeCommand(argv: string[]): Promise<void> {
   }
 
   const hooks = await loadHypeHooks(project);
-  const result = buildHypeRows(collections, locale, hypeUser, hooks);
-  const destination = `${paths.hypeDir}/${locale}.csv`;
-  await writeCsvFile(destination, result.columns, result.rows);
+  const results = await Promise.all(collections.map(async (collection) => {
+    const result = buildHypeRows([collection], locale, hypeUser, hooks);
+    const destinationDir = collection.directory ? `${collection.directory}/hype` : `${paths.root}/hype`;
+    const destination = `${destinationDir}/${locale}.csv`;
+    await writeCsvFile(destination, result.columns, result.rows);
+    return result;
+  }));
 
-  note(renderHypeSummary(createHypeSummary(locale, result.rows)), "Summary");
+  const combinedRows = results.flatMap((result) => result.rows);
+  note(renderHypeSummary(createHypeSummary(locale, combinedRows)), "Summary");
 }

@@ -1,7 +1,7 @@
 import {
+  groupMultiselect,
   group,
   isCancel,
-  multiselect,
   select,
   text,
 } from "@clack/prompts";
@@ -62,9 +62,11 @@ export async function promptHumapProjectSelection(projects: string[]): Promise<s
 export async function promptCollectionSelection(
   collections: Array<{ value: string; label: string; hint?: string }>,
 ): Promise<string[]> {
-  const values = await multiselect({
+  const values = await groupMultiselect({
     message: "Select collections to export",
-    options: collections,
+    options: {
+      "ALL Collections": collections,
+    },
     required: true,
   });
 
