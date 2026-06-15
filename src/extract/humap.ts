@@ -193,7 +193,6 @@ export async function exportHumapCollections(
     const fileDir = path.join(collectionDir, "files");
     await rm(collectionDir, { recursive: true, force: true });
     await mkdir(imageDir, { recursive: true });
-    await mkdir(fileDir, { recursive: true });
 
     let imagesCopied = 0;
     let filesDownloaded = 0;
@@ -370,11 +369,11 @@ export async function exportHumapCollections(
         directory: collectionDir,
         metadata: compactObject({
           sourceName: project.sourceName,
+          sourceDir: project.sourceDir,
           collectionId: collection._humap_id,
           collectionName: collection.name,
           collectionSlug: filenameStem,
           collectionType: collection.type ?? null,
-          sourceDir: project.sourceDir,
           tenantName: data.tenant?.name,
           tenantSlug: data.tenant?.slug,
         }),
