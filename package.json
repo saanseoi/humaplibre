@@ -1,11 +1,11 @@
 {
-  "name": "gmaplibre",
+  "name": "humaplibre",
   "module": "index.ts",
   "type": "module",
   "private": true,
   "scripts": {
     "dev": "bun run index.ts",
-    "export": "bun run index.ts",
+    "process": "bun run index.ts",
     "hype": "bun run index.ts hype",
     "check": "tsc --noEmit"
   },
@@ -20,8 +20,6 @@
   },
   "dependencies": {
     "@clack/prompts": "^1.5.1",
-    "fast-xml-parser": "^5.8.0",
-    "nanoid": "^5.1.11",
-    "node-html-parser": "^7.1.0"
+    "nanoid": "^5.1.11"
   }
 }
