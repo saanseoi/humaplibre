@@ -1,20 +1,19 @@
 <p align="center">
-<img width="320" height="320" alt="GMapLibre Logo" src="https://github.com/user-attachments/assets/8ef74450-af17-445f-9c98-e607eae1f872" />
-  <h1 align="center">Liberate your Google Maps</h1>
+<img width="320" height="320" alt="HupapLibre Logo" src="https://github.com/user-attachments/assets/3d8fb9df-709c-469c-a65d-03a583c142d3" />
+  <h1 align="center">Liberate your Humaps</h1>
 </p>
 
-`gmaplibre` is a friendly CLI that helps you export your Google Maps while _keeping your images_. 
+`humaplibre` is a friendly CLI that processes your [humap](https://humap.me/) into reusable parts. 
 
 ## Common Use Cases
 
-- Archive community-made Google My Maps before links, images, or descriptions change.
-- Convert My Maps into a generic GeoJSON dataset that can be reused in other tools.
-- Download images referenced in map descriptions and store them locally with stable filenames.
-- Merge multiple source maps into one project export; or batch download mulitple maps but keeping their data distinct. 
+- Archive community-made Humaps before links, images, or descriptions change.
+- Convert Humaps into a generic GeoJSON dataset that can be reused in other tools.
+- Group exported data by their respective maps.
 
 ## HYPE Use Cases
 
-Hype.hk is a public mapping platform in Hong Kong. This tool was developed to port Google Maps over to HYPE. As such, `gmaplibre` helps you to:
+Hype.hk is a public mapping platform in Hong Kong. This tool was developed to port Humap exports over to HYPE. As such, `humaplibre` helps you to:
 
 - Prepare HYPE import CSVs from a consistent intermediate export.
 - Add project-specific HYPE transformation rules with lightweight custom hooks in `custom/{project}/hype.ts`.
@@ -24,35 +23,48 @@ Hype.hk is a public mapping platform in Hong Kong. This tool was developed to po
 Clone the repo and install the project
 
 ```sh
-git clone git@github.com:saanseoi/gmaplibre.git && cd gmaplibre
+git clone git@github.com:saanseoi/humaplibre.git && cd humaplibre
 bun install
 ```
 
 ## Use
 
-### 1. Export to GeoJSON
+### 0. Ensure exports are enabled on Humap
+
+The export functionality on your Humap instance is disabled by default. You may [contact support](mailto:support@humap.me) with a request to have it enabled. Once it's enabled it's show up as a **Tools > Exports** in your Admin panel at `{HUMAP_DOMAIN}/admin/exports`. 
+
+Note that by default Humap only offers GeoJSON export of the __records__ -- these exports don't export any of the associated media or other details you may have attached to your map.
+
+### 1. Create an export
+
+Click 'Generate Export' in the top right of the view. It'll say 'Export Queued' at the top, and "Running" in the table of exports until it is ready to be downloaded. The delay depends on how large your humap instance is, but it's normal to have to wait a couple of minutes until the export is created. You need to refresh the page to see whether it's completed.
+
+Once it's available, download the export -- it's a zip file, so extract it and put all the contents into the the import folder in the repo you've cloned, i.e. `humaplibre/import`. Your folder structure should look like
+
+<img width="600" alt="image" src="https://github.com/user-attachments/assets/a010c912-bca7-4636-82e3-9d0f8bd3dfc5" />
+
+where `export-humaplibre-20260101-000000` contains all your humap files.
+
+
+### 2. Export to GeoJSON
 
 A CLI will guide you through the steps of exporting your Google Maps. Run
 
 ```sh
-bun run export
+bun run process
 ```
 
-The CLI will:
+The CLI will help you to
 
-- Select or create a project.
-- Ask for one or more Google My Maps URLs unless passed with `--url`.
-- Decide whether to `replace` or `extend` an existing export.
-- Decide whether maps should be combined or kept separate.
-- Decide how layers should be handled.
-- Resolve each Google My Maps source and extract its KML.
-- Convert features into GeoJSON.
-- Extract image URLs from each feature description.
-- Remove embedded images from the saved plain-text description.
-- Download those images into the project’s `images/` folder.
+- Select your project.
+- Select any number of your collections.
+- Merge a record's links and media into GeoJSON.
+- Rewrite image names to match the record Id, and sequence number.
+- Move those images into the collection’s `images/` folder.
 - Write GeoJSON collections plus a `manifest.json`.
 
-### 2. Prepare for HYPE
+
+### 3. Prepare for HYPE
 
 Optionally, you can use the tool to prepare a map for upload to [HYPE](https://hype.hk). Run:
 
@@ -71,14 +83,15 @@ The CLI will:
 ## Example Output
 
 ```txt
-export/{project}/
-  maps/
-    *.geojson
-  images/
-    {featureId}-00.jpg
-    {featureId}-01.png
-  hype/
-    {locale}.csv
+export/
+  {project}/
+    {collection}/
+      {collection}.geojson
+      images/
+        {featureId}-00.jpg
+        {featureId}-01.png
+      hype/
+        {locale}.csv
   manifest.json
 ```
 
@@ -108,9 +121,8 @@ If a hook is not provided, the default behavior is used.
 
 ## Limitations
 
-- This tool was designed primarily to extract images from the Google My Maps description field and preserve the remaining description text in a cleaner form.
-- It is not yet a general-purpose extractor for arbitrary structured data hidden inside descriptions or other custom KML content.
-- If you have another extraction use case in mind, open an issue describing the source data and desired output.
+- This export was only tested against a handful of humaps. There may be unforseen bugs or limitations.
+- If you have another extraction use case in mind, open an issue describing the desired process and output.
 
 ## Development
 
@@ -129,3 +141,5 @@ bun run check
 ## Contributing
 
 Public contributions are welcome. See [CONTRIBUTING.md](./CONTRIBUTING.md).
+
+
