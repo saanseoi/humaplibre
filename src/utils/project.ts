@@ -27,6 +27,10 @@ export function createFeatureId(): string {
 	return createNanoId();
 }
 
+export function createLayerId(): string {
+	return createNanoId();
+}
+
 export function hashValue(value: string): string {
 	return createHash("sha256").update(value).digest("hex");
 }
