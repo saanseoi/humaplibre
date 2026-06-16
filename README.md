@@ -75,7 +75,7 @@ bun run hype
 The CLI will:
 
 - Load the exported GeoJSON collections for a project.
-- Ask for HYPE user details unless passed with `--email` and `--user-id`.
+- Ask for a fallback HYPE attribution email only when records do not have contributor provenance.
 - Build one multi-locale CSV for HYPE import.
 - Apply optional project-specific hooks from `custom/{project}/hype.ts`.
 
@@ -97,7 +97,7 @@ export/
 
 ```txt
 bun run export [--project <project>] [--mode replace|extend] [--map-mode combine|keepSeparate] [--layer-mode flatten|groupByName|asIs] [--url <url> ...]
-bun run hype [--project <project>] [--email <email>] [--user-id <id>]
+bun run hype [--project <project>] [--email <email>]
 ```
 
 ## Project Customization

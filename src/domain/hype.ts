@@ -1,6 +1,5 @@
 export interface HypeUser {
 	email: string;
-	id: string;
 }
 
 export interface HypeRow {
@@ -15,5 +14,4 @@ export interface HypeRow {
 	"feature.isPublished": string;
 	"feature.isVisitable": string;
 	"user.email": string;
-	"user.id": string;
 }

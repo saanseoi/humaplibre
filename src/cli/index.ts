@@ -57,6 +57,6 @@ function printHelp(): void {
 
 Commands:
   gmaplibre export [--project <import-project>]
-  gmaplibre hype [--project <project>] [--email <email>] [--user-id <id>]
+  gmaplibre hype [--project <project>] [--email <email>]
 `);
 }

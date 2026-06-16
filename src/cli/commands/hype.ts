@@ -13,8 +13,8 @@ import { buildHypeRows } from "../../transform/hype.ts";
 import { createLayerId, resolveProjectName, slugify } from "../../utils/project.ts";
 import { getStringFlag, parseArgs } from "../args.ts";
 import {
+	promptHypeAttributionEmail,
 	promptHypeLayerId,
-	promptHypeUser,
 	promptProjectSelection,
 } from "../prompts/project.ts";
 
@@ -29,14 +29,16 @@ export async function runHypeCommand(argv: string[]): Promise<void> {
 	await ensureProjectDirs(paths);
 
 	const email = getStringFlag(parsed.flags, "email");
-	const userId = getStringFlag(parsed.flags, "user-id");
-	const hypeUser =
-		email && userId ? { email, id: userId } : await promptHypeUser();
 
 	const collections = await loadExistingCollections(paths.mapsDir);
 	if (collections.length === 0) {
 		throw new CliError(`No GeoJSON exports found in ${paths.mapsDir}.`);
 	}
+
+	const fallbackEmail = hasFeaturesWithoutContributorEmail(collections)
+		? (email ?? await promptHypeAttributionEmail())
+		: (email ?? "");
+	const hypeUser = { email: fallbackEmail };
 
 	const hooks = await loadHypeHooks(project);
 	const timestamp = formatTimestamp(new Date());
@@ -62,6 +64,17 @@ export async function runHypeCommand(argv: string[]): Promise<void> {
 			createHypeSummary(project, results.flatMap((result) => result.rows)),
 		),
 		"Summary",
+	);
+}
+
+function hasFeaturesWithoutContributorEmail(
+	collections: Awaited<ReturnType<typeof loadExistingCollections>>,
+): boolean {
+	return collections.some((collection) =>
+		collection.features.some((feature) => {
+			const email = feature.properties.userEmail;
+			return typeof email !== "string" || !email.trim();
+		}),
 	);
 }
 
