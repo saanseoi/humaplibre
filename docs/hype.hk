@@ -1,0 +1,80 @@
+# HYPE Export Mapping
+
+`bun run hype` reads processed GeoJSON collections from `export/{project}` and writes one HYPE CSV per collection:
+
+```txt
+export/
+  {project}/
+    {collection}/
+      {collection}.geojson
+      images/
+      hype-{project}-{collection}-{datetime}.csv
+```
+
+## Columns Emitted
+
+- `status`: `OK`, unless required fields are missing.
+- `error`: populated with a validation code such as `missing_title`.
+- `feature.id`: the generated HumapLibre feature nanoId.
+- `feature.i18n[locale=en].featureId`: same generated feature nanoId.
+- `feature.i18n[locale=zhHant].featureId`: same generated feature nanoId.
+- `feature.i18n[locale=en].locale`: `en`.
+- `feature.i18n[locale=zhHant].locale`: `zhHant`.
+- `feature.i18n[locale=en].title`: English title parsed from `name`.
+- `feature.i18n[locale=zhHant].title`: Traditional Chinese title parsed from `name`; if the source title is English-only, the English title is copied here.
+- `feature.i18n[locale=*].titleGen`: `false` only when the matching title has a value.
+- `feature.i18n[locale=en].rawAddress`: English address parsed from `rawAddress` or `description`.
+- `feature.i18n[locale=zhHant].rawAddress`: Traditional Chinese address parsed from `rawAddress` or `description`.
+- `feature.i18n[locale=*].description`: locale-specific extracted notes, such as relocation or MTR-exit hints.
+- `feature.i18n[locale=*].descriptionGen`: `false` only when the matching description has a value.
+- `feature.isArchived`: from `isArchivedFromFeature`, otherwise `false`.
+- `feature.isIntangible`: from `isIntangibleFromFeature`, otherwise `true` when the title includes closed/moved markers.
+- `feature.isPublished`: from `isPublishedFromFeature`, otherwise `record.status === "published"`.
+- `feature.isVisitable`: from `isVisitableFromFeature`, otherwise `false` when the title includes closed/moved markers.
+- `feature.latitude`: GeoJSON point latitude.
+- `feature.longitude`: GeoJSON point longitude.
+- `layer.id`: prompted from the user if the layer already exists on HYPE; otherwise generated as a 12-character nanoId.
+- `layer.name`: collection name.
+- `user.email`: Humap creator email from `users.csv`; only records without a clear contributor email fall back to the prompted HYPE attribution email.
+
+## Project-Specific Processing
+
+The generic HYPE transformer only maps already-normalized fields. The parsing below is implemented in `custom/cultural-media-education-foundation/hype.ts`.
+
+- Titles split on `|` or `｜`, with inconsistent spacing tolerated.
+- Title markers removed from exported titles: `已結業`, `已結束`, `結束`, `已搬遷`, `Closed`, `CLOSED`, and `moved`.
+- Title markers set `feature.isIntangible=true` and `feature.isVisitable=false`.
+- Address text is split into `en` and `zhHant` when both are present.
+- Bracketed notes are removed from raw addresses and retained in the matching locale description.
+- `2025.5.7之後的地址` is exported as `2025-05-07之後的地址` in `zhHant` description and `Relocated here on 2025-05-07` in `en` description.
+- `2016後搬到此地址` is exported as `2016後搬到此地址` in `zhHant` description and `Relocated here in 2016` in `en` description.
+- Known difficult records are overridden by `humapRecordId` in the project hook.
+
+## Skipped
+
+- Skipped (all empty): `addressProperties`.
+- Skipped (all empty): `addressMeta`.
+- Skipped for now: `property[layer@ALL].*`, `dataFields`, `customFields`, `hierarchies`, and `category`.
+- Ignored: `displayAddress`.
+
+## Dropped Humap Intermediate Fields
+
+- Dropped safely: `humapRecordId`, `itemOrder`, `images`, `files`, `audio`, `video`, `links`, `annotations`, and `stats`.
+- Used for HYPE parsing when present: `descriptionRaw`, because HTML line breaks can preserve locale boundaries.
+- Kept in intermediate exports: `hierarchies`, copied from Humap `taxonomies`.
+- Kept in intermediate exports: `category`, a lowercase derived category value for compatibility.
+- Retained only for lookup: `createdBy` and `userId`; HYPE export uses `userId` to find `user.email` in `users.csv`.
+- Dropped currently: `dateFrom` and `dateTo`.
+
+## TODO
+
+Add support for:
+- validity range, (`dateFrom` and `dateTo`)
+- rank ordered records (`itemOrder`)
+- image metadata (`images.title`, `images.description`, `images.rightsStatement` etc)
+- audio, video embedding (`audio`, `video`) and other media types
+- links (`links`)
+- annotations (`annotations`)
+- file attachments (`files`)
+- mapping `taxonomies` and `category` to HYPE properties.
+- mapping dataFields and custom fields to HYPE properties.
