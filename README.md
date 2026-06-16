@@ -75,9 +75,8 @@ bun run hype
 The CLI will:
 
 - Load the exported GeoJSON collections for a project.
-- Ask for a locale unless passed with `--locale`.
 - Ask for HYPE user details unless passed with `--email` and `--user-id`.
-- Build a CSV for HYPE import.
+- Build one multi-locale CSV for HYPE import.
 - Apply optional project-specific hooks from `custom/{project}/hype.ts`.
 
 ## Example Output
@@ -90,8 +89,7 @@ export/
       images/
         {featureId}-00.jpg
         {featureId}-01.png
-      hype/
-        {locale}.csv
+      hype-{project}-{collection}-{datetime}.csv
   manifest.json
 ```
 
@@ -99,7 +97,7 @@ export/
 
 ```txt
 bun run export [--project <project>] [--mode replace|extend] [--map-mode combine|keepSeparate] [--layer-mode flatten|groupByName|asIs] [--url <url> ...]
-bun run hype [--project <project>] [--locale <locale>] [--email <email>] [--user-id <id>]
+bun run hype [--project <project>] [--email <email>] [--user-id <id>]
 ```
 
 ## Project Customization
@@ -112,6 +110,7 @@ custom/{project}/hype.ts
 
 Supported hooks:
 
+- `i18nFromFeature`
 - `isArchivedFromFeature`
 - `isIntangibleFromFeature`
 - `isPublishedFromFeature`
