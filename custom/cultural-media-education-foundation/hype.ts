@@ -59,8 +59,6 @@ function localizedFields(
 		: address.zhHantDescription;
 
 	return {
-		locale,
-		featureId: feature.properties.featureId ?? "",
 		title: localizedTitle,
 		titleGen: localizedTitle ? "false" : "",
 		description,

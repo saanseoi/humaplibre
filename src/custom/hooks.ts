@@ -5,8 +5,6 @@ export interface HypeHookContext {
 }
 
 export interface HypeLocaleFields {
-	locale?: string;
-	featureId?: string;
 	title?: string;
 	titleGen?: string;
 	description?: string;

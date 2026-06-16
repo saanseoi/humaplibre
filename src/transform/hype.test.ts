@@ -173,6 +173,10 @@ test("buildHypeRows emits one row with locale-qualified columns", () => {
 	});
 	expect(result.columns).toContain("feature.i18n[locale=en].rawAddress");
 	expect(result.columns).toContain("feature.i18n[locale=zhHant].rawAddress");
+	expect(result.columns).not.toContain("feature.i18n[locale=en].featureId");
+	expect(result.columns).not.toContain("feature.i18n[locale=zhHant].featureId");
+	expect(result.columns).not.toContain("feature.i18n[locale=en].locale");
+	expect(result.columns).not.toContain("feature.i18n[locale=zhHant].locale");
 	expect(result.columns).not.toContain("feature.published");
 	expect(result.columns).not.toContain("addressMeta.latitude");
 	expect(result.columns).not.toContain("feature.i18n[locale=en].displayAddress");

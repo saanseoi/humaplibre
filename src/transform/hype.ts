@@ -74,8 +74,6 @@ export const HYPE_COLUMNS = [
 	...localeColumns("en", [
 		"description",
 		"descriptionGen",
-		"featureId",
-		"locale",
 		"rawAddress",
 		"title",
 		"titleGen",
@@ -83,8 +81,6 @@ export const HYPE_COLUMNS = [
 	...localeColumns("zhHant", [
 		"description",
 		"descriptionGen",
-		"featureId",
-		"locale",
 		"rawAddress",
 		"title",
 		"titleGen",
@@ -137,8 +133,6 @@ function defaultLocaleFields(
 	const description = stringifyValue(feature.properties.description);
 
 	return {
-		locale,
-		featureId: feature.properties.featureId ?? "",
 		title,
 		titleGen: title ? "false" : "",
 		description,
