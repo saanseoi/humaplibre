@@ -1,19 +1,19 @@
 import { cancel, intro, outro } from "@clack/prompts";
-import { runProcessCommand } from "./commands/process.ts";
-import { runHypeCommand } from "./commands/hype.ts";
 import { CliError, isCliError } from "../core/errors.ts";
+import { runHypeCommand } from "./commands/hype.ts";
+import { runProcessCommand } from "./commands/process.ts";
 
 export async function runCli(argv: string[]): Promise<void> {
-  try {
-    const [command, ...rest] = argv;
+	try {
+		const [command, ...rest] = argv;
 
-    if (command === "--help" || command === "-h" || command === "help") {
-      printHelp();
-      return;
-    }
+		if (command === "--help" || command === "-h" || command === "help") {
+			printHelp();
+			return;
+		}
 
-    if (!command || command === "process") {
-      intro(`
+		if (!command || command === "process") {
+			intro(`
 │
 │      ▗▖ ▗▖█  ▐▌▄▄▄▄  ▗▞▀▜▌▄▄▄▄  ▗▖   ▄ ▗▖    ▄▄▄ ▗▞▀▚▖
 │      ▐▌ ▐▌▀▄▄▞▘█ █ █ ▝▚▄▟▌█   █ ▐▌   ▄ ▐▌   █    ▐▛▀▀▘
@@ -21,13 +21,13 @@ export async function runCli(argv: string[]): Promise<void> {
 │      ▐▌ ▐▌                █     ▐▙▄▄▖█ ▐▙▄▞▘
 │                           ▀
 │                    山水 | SaanSeoi`);
-      await runProcessCommand(rest);
-      outro("Export finished.");
-      return;
-    }
+			await runProcessCommand(rest);
+			outro("Export finished.");
+			return;
+		}
 
-    if (command === "hype") {
-      intro(`
+		if (command === "hype") {
+			intro(`
 │
 │      ▗▖ ▗▖█  ▐▌▄▄▄▄  ▗▞▀▜▌▄▄▄▄  ▗▖   ▄ ▗▖    ▄▄▄ ▗▞▀▚▖
 │      ▐▌ ▐▌▀▄▄▞▘█ █ █ ▝▚▄▟▌█   █ ▐▌   ▄ ▐▌   █    ▐▛▀▀▘
@@ -35,28 +35,28 @@ export async function runCli(argv: string[]): Promise<void> {
 │      ▐▌ ▐▌                █     ▐▙▄▄▖█ ▐▙▄▞▘
 │                           ▀
 │                 山水 | SaanSeoi | HYPE`);
-      await runHypeCommand(rest);
-      outro("HYPE export finished.");
-      return;
-    }
+			await runHypeCommand(rest);
+			outro("HYPE export finished.");
+			return;
+		}
 
-    throw new CliError(`Unknown command: ${command}`);
-  } catch (error) {
-    const message = isCliError(error)
-      ? error.message
-      : error instanceof Error
-        ? error.message
-        : "Unknown error";
-    cancel(message);
-    process.exitCode = 1;
-  }
+		throw new CliError(`Unknown command: ${command}`);
+	} catch (error) {
+		const message = isCliError(error)
+			? error.message
+			: error instanceof Error
+				? error.message
+				: "Unknown error";
+		cancel(message);
+		process.exitCode = 1;
+	}
 }
 
 function printHelp(): void {
-  console.log(`humaplibre
+	console.log(`humaplibre
 
 Commands:
   gmaplibre export [--project <import-project>]
-  gmaplibre hype [--project <project>] [--locale <locale>] [--email <email>] [--user-id <id>]
+  gmaplibre hype [--project <project>] [--email <email>] [--user-id <id>]
 `);
 }
