@@ -442,25 +442,22 @@ export async function exportHumapCollections(
 			pendingFileDownloads.map(({ target: _target, ...asset }) => asset),
 		);
 
-			for (let index = 0; index < downloads.length; index += 1) {
-				const localPath = downloads[index]?.localPath;
-				const pendingDownload = pendingFileDownloads[index];
-				if (!localPath) {
-					continue;
-				}
-				if (!pendingDownload) {
-					continue;
-				}
-
-				pendingDownload.target.path = path.posix.join(
-					"files",
-					localPath,
-				);
-				if (downloads[index]?.mimeType) {
-					pendingDownload.target.mimeType = downloads[index]?.mimeType;
-				}
-				filesDownloaded += 1;
+		for (let index = 0; index < downloads.length; index += 1) {
+			const localPath = downloads[index]?.localPath;
+			const pendingDownload = pendingFileDownloads[index];
+			if (!localPath) {
+				continue;
 			}
+			if (!pendingDownload) {
+				continue;
+			}
+
+			pendingDownload.target.path = path.posix.join("files", localPath);
+			if (downloads[index]?.mimeType) {
+				pendingDownload.target.mimeType = downloads[index]?.mimeType;
+			}
+			filesDownloaded += 1;
+		}
 
 		results.push({
 			collection: {

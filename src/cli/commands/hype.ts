@@ -10,7 +10,11 @@ import { loadHypeHooks } from "../../custom/loader.ts";
 import { writeCsvFile } from "../../formats/csv.ts";
 import { loadExistingCollections } from "../../formats/geojson.ts";
 import { buildHypeRows } from "../../transform/hype.ts";
-import { createLayerId, resolveProjectName, slugify } from "../../utils/project.ts";
+import {
+	createLayerId,
+	resolveProjectName,
+	slugify,
+} from "../../utils/project.ts";
 import { getStringFlag, parseArgs } from "../args.ts";
 import {
 	promptHypeAttributionEmail,
@@ -36,7 +40,7 @@ export async function runHypeCommand(argv: string[]): Promise<void> {
 	}
 
 	const fallbackEmail = hasFeaturesWithoutContributorEmail(collections)
-		? (email ?? await promptHypeAttributionEmail())
+		? (email ?? (await promptHypeAttributionEmail()))
 		: (email ?? "");
 	const hypeUser = { email: fallbackEmail };
 
@@ -61,7 +65,10 @@ export async function runHypeCommand(argv: string[]): Promise<void> {
 
 	note(
 		renderHypeSummary(
-			createHypeSummary(project, results.flatMap((result) => result.rows)),
+			createHypeSummary(
+				project,
+				results.flatMap((result) => result.rows),
+			),
 		),
 		"Summary",
 	);

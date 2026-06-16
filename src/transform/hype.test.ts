@@ -28,7 +28,9 @@ test("extractBilingualAddress keeps shared unit token in both locale addresses",
 
 test("extractLocalizedTitle splits pipe-delimited names and strips inactive markers", () => {
 	expect(
-		extractLocalizedTitle("Seeds 兒童書店 (已搬遷) | Seeds Children's Bookstore (moved)"),
+		extractLocalizedTitle(
+			"Seeds 兒童書店 (已搬遷) | Seeds Children's Bookstore (moved)",
+		),
 	).toEqual({
 		en: "Seeds Children's Bookstore",
 		zhHant: "Seeds 兒童書店",
@@ -39,7 +41,9 @@ test("extractLocalizedTitle splits pipe-delimited names and strips inactive mark
 		zhHant: "Flow Bookshop",
 		isInactive: false,
 	});
-	expect(extractLocalizedTitle("Book B (在Common Room & Co.) (已結束)")).toEqual({
+	expect(
+		extractLocalizedTitle("Book B (在Common Room & Co.) (已結束)"),
+	).toEqual({
 		en: "Book B (@Common Room & Co.)",
 		zhHant: "Book B (在Common Room & Co.)",
 		isInactive: true,
@@ -179,7 +183,9 @@ test("buildHypeRows emits one row with locale-qualified columns", () => {
 	expect(result.columns).not.toContain("feature.i18n[locale=zhHant].locale");
 	expect(result.columns).not.toContain("feature.published");
 	expect(result.columns).not.toContain("addressMeta.latitude");
-	expect(result.columns).not.toContain("feature.i18n[locale=en].displayAddress");
+	expect(result.columns).not.toContain(
+		"feature.i18n[locale=en].displayAddress",
+	);
 });
 
 test("buildHypeRows uses fallback email only when feature lacks creator email", () => {

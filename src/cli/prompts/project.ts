@@ -111,7 +111,9 @@ export async function promptLocale(): Promise<string> {
 	return customLocale.trim();
 }
 
-export async function promptHypeLayerId(layerName: string): Promise<string | null> {
+export async function promptHypeLayerId(
+	layerName: string,
+): Promise<string | null> {
 	const exists = await select({
 		message: `Does the layer already exist on HYPE? ${layerName}`,
 		options: [

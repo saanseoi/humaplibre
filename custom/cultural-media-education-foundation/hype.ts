@@ -1,7 +1,7 @@
 import type {
 	HypeHookContext,
-	HypeLocaleFields,
 	HypeHooks,
+	HypeLocaleFields,
 } from "../../src/custom/hooks.ts";
 import type { GenericFeatureCollection } from "../../src/formats/geojson.ts";
 
@@ -31,11 +31,13 @@ export function i18nFromFeature(
 }
 
 export function isIntangibleFromFeature(feature: Feature): boolean {
-	return extractLocalizedTitle(stringifyValue(feature.properties.name)).isInactive;
+	return extractLocalizedTitle(stringifyValue(feature.properties.name))
+		.isInactive;
 }
 
 export function isVisitableFromFeature(feature: Feature): boolean {
-	return !extractLocalizedTitle(stringifyValue(feature.properties.name)).isInactive;
+	return !extractLocalizedTitle(stringifyValue(feature.properties.name))
+		.isInactive;
 }
 
 const hooks: HypeHooks = {
@@ -47,7 +49,7 @@ const hooks: HypeHooks = {
 export default hooks;
 
 function localizedFields(
-	feature: Feature,
+	_feature: Feature,
 	locale: HypeLocale,
 	title: LocalizedTitle,
 	address: BilingualAddress,
@@ -109,10 +111,13 @@ function stripLifecycleMarkers(value: string): {
 } {
 	let isInactive = false;
 	const text = value
-		.replace(/[（(]\s*(已結業|已結束|結束|已搬遷|Closed|CLOSED|moved)\s*[）)]/giu, () => {
-			isInactive = true;
-			return "";
-		})
+		.replace(
+			/[（(]\s*(已結業|已結束|結束|已搬遷|Closed|CLOSED|moved)\s*[）)]/giu,
+			() => {
+				isInactive = true;
+				return "";
+			},
+		)
 		.replace(/\s+/g, " ")
 		.trim();
 
@@ -140,7 +145,7 @@ function titleCaseEnglish(value: string): string {
 				part === "-"
 					? part
 					: part.charAt(0).toLocaleUpperCase("en-US") +
-						part.slice(1).toLocaleLowerCase("en-US")
+						part.slice(1).toLocaleLowerCase("en-US"),
 			)
 			.join("");
 	});
@@ -185,8 +190,8 @@ export function extractBilingualAddress(value: string): BilingualAddress {
 		notes.push({ text: historical.zhHantDescription, language: "zh" });
 		for (let index = notes.length - 1; index >= 0; index -= 1) {
 			if (
-				/^Relocated here on /u.test(notes[index]!.text) ||
-				/^\d{4}-\d{2}-\d{2}之後的地址$/u.test(notes[index]!.text)
+				/^Relocated here on /u.test(notes[index]?.text) ||
+				/^\d{4}-\d{2}-\d{2}之後的地址$/u.test(notes[index]?.text)
 			) {
 				notes.splice(index, 1);
 			}
@@ -255,7 +260,8 @@ const MANUAL_I18N_OVERRIDES: Record<
 			rawAddress: "2A, 63 Sai Yeung Choi Street, Mong Kok, Kowloon",
 		},
 		zhHant: {
-			description: "旺角亞皆老街107-111號皆旺商業大廈2203室（2016後搬到此地址）。",
+			description:
+				"旺角亞皆老街107-111號皆旺商業大廈2203室（2016後搬到此地址）。",
 			rawAddress: "旺角西洋菜街63號2樓A",
 		},
 	},
@@ -295,8 +301,10 @@ const MANUAL_I18N_OVERRIDES: Record<
 	},
 	308242: {
 		en: {
-			description: 'Visit <a href="https://bubble.hk/">Beyond the Bubble Studio</a>',
-			rawAddress: "13B, Justen Centre, 44-52, Wai Ching Street, Jordan, Kowloon",
+			description:
+				'Visit <a href="https://bubble.hk/">Beyond the Bubble Studio</a>',
+			rawAddress:
+				"13B, Justen Centre, 44-52, Wai Ching Street, Jordan, Kowloon",
 		},
 		zhHant: {
 			description: '<a href="https://bubble.hk/">網址</a>',
@@ -315,9 +323,7 @@ function htmlToAddressText(value: string): string {
 		.trim();
 }
 
-function extractHistoricalAddress(
-	value: string,
-): {
+function extractHistoricalAddress(value: string): {
 	remaining: string;
 	enDescription: string;
 	zhHantDescription: string;
@@ -372,8 +378,8 @@ function splitBilingualText(text: string): { en: string; zhHant: string } {
 		return { en: normalized, zhHant: "" };
 	}
 
-	const firstZh = zhRanges[0]!.start;
-	const lastZh = zhRanges[zhRanges.length - 1]!.end;
+	const firstZh = zhRanges[0]?.start;
+	const lastZh = zhRanges[zhRanges.length - 1]?.end;
 	const startsWithZh =
 		firstZh < firstLatinIndex(normalized) || firstLatinIndex(normalized) === -1;
 
@@ -406,7 +412,7 @@ function findZhToEnglishBoundary(
 	const suffix = text.slice(fallbackEnd);
 	const repeatedToken = suffix.match(/^(\s*[A-Za-z0-9]+)\s+\1(?=[,\s])/u);
 	if (repeatedToken) {
-		return { zhStart: 0, enStart: fallbackEnd + repeatedToken[1]!.length };
+		return { zhStart: 0, enStart: fallbackEnd + repeatedToken[1]?.length };
 	}
 
 	const boundary = suffix.match(
@@ -419,7 +425,10 @@ function findZhToEnglishBoundary(
 	return { zhStart: 0, enStart: fallbackEnd };
 }
 
-function cleanSplitParts(first: string, second: string): {
+function cleanSplitParts(
+	first: string,
+	second: string,
+): {
 	en: string;
 	zhHant: string;
 } {
@@ -538,7 +547,9 @@ function normalizeNotes(
 		];
 	}
 
-	const subwayExit = text.match(/^地鐵\s*([A-Z]\d+)\s*出口(?:,\s*大快活對面)?$/u);
+	const subwayExit = text.match(
+		/^地鐵\s*([A-Z]\d+)\s*出口(?:,\s*大快活對面)?$/u,
+	);
 	if (subwayExit) {
 		const oppositeFairwood = /大快活對面/u.test(text);
 		return [
@@ -574,7 +585,9 @@ function normalizeEnglishDescription(values: string[]): string {
 		const exits = subway
 			.map((value) => value.match(/^Subway Exit ([A-Z]\d+)/u)?.[1])
 			.filter((value): value is string => Boolean(value));
-		const hasFairwood = subway.some((value) => value.includes("opposite Fairwood"));
+		const hasFairwood = subway.some((value) =>
+			value.includes("opposite Fairwood"),
+		);
 		others.push(
 			`Subway Exit ${exits.join("/")}${hasFairwood ? ", opposite Fairwood" : ""}`,
 		);
@@ -617,7 +630,10 @@ function stringifyValue(value: unknown): string {
 		return String(value);
 	}
 	if (Array.isArray(value)) {
-		return value.map((entry) => stringifyValue(entry)).filter(Boolean).join("; ");
+		return value
+			.map((entry) => stringifyValue(entry))
+			.filter(Boolean)
+			.join("; ");
 	}
 	return JSON.stringify(value);
 }

@@ -45,7 +45,8 @@ export function buildHypeRows(
 					"feature.isVisitable": String(
 						hooks.isVisitableFromFeature?.(feature, context) ?? true,
 					),
-					"user.email": stringifyValue(feature.properties.userEmail) || user.email,
+					"user.email":
+						stringifyValue(feature.properties.userEmail) || user.email,
 				};
 
 				setBaseFields(row, {
@@ -116,8 +117,9 @@ function setLocaleColumns(
 	hooks: HypeHooks,
 ): void {
 	for (const locale of HYPE_LOCALES) {
-		const defaults = defaultLocaleFields(locale, feature);
-		const override = hooks.i18nFromFeature?.(feature, locale, { collection }) ?? {};
+		const defaults = defaultLocaleFields(feature);
+		const override =
+			hooks.i18nFromFeature?.(feature, locale, { collection }) ?? {};
 		const fields = { ...defaults, ...compactLocaleFields(override) };
 		for (const [field, value] of Object.entries(fields)) {
 			row[`feature.i18n[locale=${locale}].${field}`] = stringifyValue(value);
@@ -126,7 +128,6 @@ function setLocaleColumns(
 }
 
 function defaultLocaleFields(
-	locale: string,
 	feature: GenericFeatureCollection["features"][number],
 ): HypeLocaleFields {
 	const title = stringifyValue(feature.properties.name);
@@ -174,7 +175,10 @@ function stringifyValue(value: unknown): string {
 		return String(value);
 	}
 	if (Array.isArray(value)) {
-		return value.map((entry) => stringifyValue(entry)).filter(Boolean).join("; ");
+		return value
+			.map((entry) => stringifyValue(entry))
+			.filter(Boolean)
+			.join("; ");
 	}
 	return JSON.stringify(value);
 }
